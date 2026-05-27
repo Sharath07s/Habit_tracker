@@ -13,19 +13,25 @@ export async function createHabit(formData: FormData) {
   const name = formData.get('name') as string
   const color = formData.get('color') as string || '#3b82f6'
 
-  const { error } = await supabase.from('habits').insert({
+  const { data, error } = await supabase.from('habits').insert({
     user_id: user.id,
     name,
     color,
-  })
+  }).select().single()
 
   if (error) throw new Error('Failed to create habit')
   revalidatePath('/dashboard/habits')
+  return data
 }
 
 export async function toggleHabitLog(habitId: string, date: Date, currentStatus: boolean) {
   const supabase = await createClient()
   const dateStr = format(date, 'yyyy-MM-dd')
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+
+  if (dateStr !== todayStr) {
+    throw new Error('You can only complete habits for today.')
+  }
 
   if (currentStatus) {
     // Delete log

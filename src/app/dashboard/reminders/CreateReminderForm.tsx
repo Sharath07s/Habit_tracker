@@ -19,7 +19,7 @@ export function CreateReminderForm() {
       await createReminder(formData)
       toast.success('Reminder created successfully')
       setOpen(false)
-    } catch (error) {
+    } catch {
       toast.error('Failed to create reminder')
     }
   }

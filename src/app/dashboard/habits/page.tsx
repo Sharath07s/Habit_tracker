@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CreateHabitForm } from './CreateHabitForm'
+
 import { HabitList } from './HabitList'
 
 export default async function HabitsPage() {
@@ -36,17 +36,20 @@ export default async function HabitsPage() {
     console.error('Error fetching habit logs:', { message: logsError.message, code: logsError.code })
   }
 
+  const todayStr = today.toISOString().split('T')[0]
+  const { data: reminders, error: remindersError } = await supabase
+    .from('reminders')
+    .select('*')
+    .eq('reminder_date', todayStr)
+    .order('reminder_time', { ascending: true })
+
+  if (remindersError) {
+    console.error('Error fetching reminders:', { message: remindersError.message, code: remindersError.code })
+  }
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Habit Tracker</h1>
-          <p className="text-muted-foreground">Build consistency with daily habits.</p>
-        </div>
-        <CreateHabitForm />
-      </div>
-      
-      <HabitList habits={habits || []} logs={logs || []} />
+    <div className="max-w-6xl mx-auto">
+      <HabitList habits={habits || []} logs={logs || []} reminders={reminders || []} />
     </div>
   )
 }

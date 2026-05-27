@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CalendarComponent } from './CalendarComponent'
+import { CalendarDashboard } from './CalendarDashboard'
 
 export default async function CalendarPage() {
   const supabase = await createClient()
@@ -15,6 +15,15 @@ export default async function CalendarPage() {
     .from('reminders')
     .select('*')
 
+  // Fetch habit logs
+  const { data: habitLogs } = await supabase.from('habit_logs').select('*')
+  
+  // Fetch focus sessions
+  const { data: focusSessions } = await supabase.from('focus_sessions').select('*').eq('completed', true)
+  
+  // Fetch daily tasks
+  const { data: dailyTasks } = await supabase.from('daily_tasks').select('*').eq('completed', true)
+
   if (error) {
     return (
       <div className="p-4 bg-red-500/10 text-red-500 rounded-md border border-red-500/20 max-w-5xl mx-auto mt-6">
@@ -28,33 +37,14 @@ export default async function CalendarPage() {
     )
   }
 
-  // Transform reminders to calendar events
-  const events = (reminders || []).map((reminder) => {
-    let start = reminder.reminder_date
-    if (reminder.reminder_time) {
-      start = `${reminder.reminder_date}T${reminder.reminder_time}`
-    }
-
-    return {
-      id: reminder.id,
-      title: reminder.title,
-      start,
-      allDay: !reminder.reminder_time,
-      backgroundColor: reminder.completed ? 'hsl(var(--muted))' :
-                       reminder.priority === 'urgent' ? '#ef4444' :
-                       reminder.priority === 'high' ? '#f97316' : 
-                       '#3b82f6',
-    }
-  })
-
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
-        <p className="text-muted-foreground">View your reminders and schedule.</p>
-      </div>
-      
-      <CalendarComponent events={events} />
+    <div className="max-w-[1400px] mx-auto">
+      <CalendarDashboard 
+        initialReminders={reminders || []} 
+        habitLogs={habitLogs || []}
+        focusSessions={focusSessions || []}
+        dailyTasks={dailyTasks || []}
+      />
     </div>
   )
 }

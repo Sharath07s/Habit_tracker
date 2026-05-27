@@ -39,7 +39,7 @@ export function TodayTasksWidget({ initialTasks }: { initialTasks: DailyTask[] }
     try {
       await addTodayTask(title, todayStr)
       // Note: revalidatePath in the action will refresh the page data
-    } catch (error) {
+    } catch {
       toast.error('Failed to add task')
       setTasks(prev => prev.filter(t => t.id !== tempId)) // Revert
     } finally {
@@ -51,7 +51,7 @@ export function TodayTasksWidget({ initialTasks }: { initialTasks: DailyTask[] }
     setTasks(prev => prev.map(t => t.id === id ? { ...t, completed } : t))
     try {
       await toggleTodayTaskComplete(id, completed)
-    } catch (error) {
+    } catch {
       toast.error('Failed to update task')
       setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !completed } : t)) // Revert
     }
@@ -62,7 +62,7 @@ export function TodayTasksWidget({ initialTasks }: { initialTasks: DailyTask[] }
     setTasks(prev => prev.filter(t => t.id !== id))
     try {
       await deleteTodayTask(id)
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete task')
       if (taskToDelete) {
         setTasks(prev => [...prev, taskToDelete]) // Revert

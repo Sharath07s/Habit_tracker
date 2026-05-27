@@ -17,7 +17,7 @@ export function CreateGoalForm() {
       await createGoal(formData)
       toast.success('Goal created successfully')
       setOpen(false)
-    } catch (error) {
+    } catch {
       toast.error('Failed to create goal')
     }
   }
