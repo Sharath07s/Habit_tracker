@@ -7,6 +7,7 @@ import { toggleHabitLog } from './actions'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
+import { format } from 'date-fns'
 
 type TodayRemainingProps = {
   remaining: Habit[]
@@ -20,7 +21,8 @@ export function TodayRemaining({ remaining }: TodayRemainingProps) {
   const handleToggle = (habitId: string) => {
     startTransition(async () => {
       try {
-        await toggleHabitLog(habitId, new Date(), false)
+        const todayStr = format(new Date(), 'yyyy-MM-dd')
+        await toggleHabitLog(habitId, todayStr, false)
       } catch {
         toast.error('Failed to complete habit')
       }

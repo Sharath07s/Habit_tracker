@@ -7,6 +7,12 @@ import { AnalyticsCharts } from './AnalyticsCharts'
 import { TodayTasksWidget, DailyTask } from './TodayTasksWidget'
 import { TodayOverviewPanel } from './TodayOverviewPanel'
 
+import { HabitHeatmap } from './HabitHeatmap'
+import { HabitStudyAnalysis } from './HabitStudyAnalysis'
+import { CombinedProductivity } from './CombinedProductivity'
+import { calculateProductivityStreaks } from './utils'
+import { StaggerContainer, FadeIn } from '@/components/animations/FadeIn'
+
 type DashboardClientProps = {
   initialReminders: any[]
   initialFocusSessions: any[]
@@ -15,6 +21,7 @@ type DashboardClientProps = {
   initialGoals: any[]
   initialTasks: DailyTask[]
   pastTasks: DailyTask[]
+  studyGoalMinutes?: number
 }
 
 export function DashboardClient({
@@ -24,7 +31,8 @@ export function DashboardClient({
   initialHabitLogs,
   initialGoals,
   initialTasks,
-  pastTasks
+  pastTasks,
+  studyGoalMinutes = 0
 }: DashboardClientProps) {
   const todayStr = format(new Date(), 'yyyy-MM-dd')
 
@@ -43,7 +51,7 @@ export function DashboardClient({
   })
 
   const focusData = last7Days.map(day => {
-    const daySessions = initialFocusSessions.filter(s => s.started_at.startsWith(day.dateStr))
+    const daySessions = initialFocusSessions.filter(s => format(new Date(s.started_at), 'yyyy-MM-dd') === day.dateStr)
     const totalSeconds = daySessions.reduce((acc, s) => acc + s.duration, 0)
     return {
       name: day.name,
@@ -53,7 +61,7 @@ export function DashboardClient({
 
   const totalFocusSeconds = initialFocusSessions.reduce((acc, s) => acc + s.duration, 0)
   const totalFocusHours = (totalFocusSeconds / 3600).toFixed(1)
-  const todayFocusSeconds = initialFocusSessions.filter(s => s.started_at.startsWith(todayStr)).reduce((acc, s) => acc + s.duration, 0)
+  const todayFocusSeconds = initialFocusSessions.filter(s => format(new Date(s.started_at), 'yyyy-MM-dd') === todayStr).reduce((acc, s) => acc + s.duration, 0)
   const todayFocusHours = (todayFocusSeconds / 3600).toFixed(1)
 
   // --- Habits ---
@@ -90,67 +98,109 @@ export function DashboardClient({
   else if (totalCompleted > 2) insight = "Solid progress. You're doing great!"
   else if (habitsCompletedToday > 0) insight = "Good start on your habits!"
 
+  const { currentDailyStreak, bestDailyStreak } = useMemo(() => {
+    return calculateProductivityStreaks(initialHabitLogs)
+  }, [initialHabitLogs])
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+      <FadeIn>
+        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+      </FadeIn>
 
-      {/* TODAY PANEL */}
-      <TodayOverviewPanel 
-        habitsCompleted={habitsCompletedToday}
-        pendingReminders={pendingReminders}
-        focusHours={todayFocusHours}
-        insight={insight}
-      />
+      {/* TOP ROW: Overview Panel & Heatmap */}
+      <StaggerContainer className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+        <FadeIn className="lg:col-span-1 h-full">
+          <TodayOverviewPanel 
+            habitsCompleted={habitsCompletedToday}
+            pendingReminders={pendingReminders}
+            focusHours={todayFocusHours}
+            insight={insight}
+          />
+        </FadeIn>
+        <FadeIn className="lg:col-span-2 h-full">
+          <HabitHeatmap habits={initialHabits} habitLogs={initialHabitLogs} />
+        </FadeIn>
+      </StaggerContainer>
 
       {/* STATS CARDS */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-black/20 backdrop-blur-md border border-white/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime Focus</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalFocusHours}h</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-black/20 backdrop-blur-md border border-white/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Habits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{habitsCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-black/20 backdrop-blur-md border border-white/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Goals Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{goalsProgress}%</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-black/20 backdrop-blur-md border border-white/5">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Reminders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingReminders}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <FadeIn>
+          <Card className="bg-black/20 backdrop-blur-md border border-white/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime Focus</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalFocusHours}h</div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+        <FadeIn>
+          <Card className="bg-black/20 backdrop-blur-md border border-white/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Habits</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{habitsCount}</div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+        <FadeIn>
+          <Card className="bg-black/20 backdrop-blur-md border border-white/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Goals Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{goalsProgress}%</div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+        <FadeIn>
+          <Card className="bg-black/20 backdrop-blur-md border border-white/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Reminders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingReminders}</div>
+            </CardContent>
+          </Card>
+        </FadeIn>
+      </StaggerContainer>
+
+      {/* PRODUCTIVITY & ANALYSIS ROW */}
+      <StaggerContainer className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+        <FadeIn className="lg:col-span-1">
+          <CombinedProductivity 
+             habitsCompletedToday={habitsCompletedToday}
+             totalHabitsActive={habitsCount}
+             studySecondsToday={todayFocusSeconds}
+             studyGoalMinutes={studyGoalMinutes}
+             currentDailyStreak={currentDailyStreak}
+             bestDailyStreak={bestDailyStreak}
+          />
+        </FadeIn>
+        <FadeIn className="lg:col-span-2">
+          <HabitStudyAnalysis 
+            habits={initialHabits} 
+            habitLogs={initialHabitLogs} 
+            focusSessions={initialFocusSessions} 
+          />
+        </FadeIn>
+      </StaggerContainer>
 
       {/* LOWER WIDGETS */}
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-        <div className="lg:col-span-1">
+      <StaggerContainer className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+        <FadeIn className="lg:col-span-1">
           <TodayTasksWidget initialTasks={initialTasks} />
-        </div>
-        <div className="lg:col-span-2">
+        </FadeIn>
+        <FadeIn className="lg:col-span-2">
           <AnalyticsCharts 
             focusData={focusData} 
             reminderStats={{ completed: completedReminders, pending: pendingReminders }} 
             taskTrendData={taskTrendData}
           />
-        </div>
-      </div>
+        </FadeIn>
+      </StaggerContainer>
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 
+import { FadeIn } from '@/components/animations/FadeIn'
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -14,7 +16,8 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+      <FadeIn className="w-full max-w-sm">
+        <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
@@ -24,7 +27,9 @@ export default async function LoginPage({
         <form action={login}>
           <CardContent className="grid gap-4">
             {message && (
-              <div className="text-sm font-medium text-destructive">{message}</div>
+              <FadeIn delay={0.1}>
+                <div className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">{message}</div>
+              </FadeIn>
             )}
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -51,7 +56,8 @@ export default async function LoginPage({
             </div>
           </CardFooter>
         </form>
-      </Card>
+        </Card>
+      </FadeIn>
     </div>
   )
 }

@@ -40,7 +40,7 @@ export function HabitCard({ habit, logs, meta, insights, onToggleLog }: HabitCar
 
     startTransition(async () => {
       try {
-        await toggleHabitLog(habit.id, date, currentStatus)
+        await toggleHabitLog(habit.id, dateStr, currentStatus)
       } catch {
         toast.error('Failed to update habit')
         // Revert on error

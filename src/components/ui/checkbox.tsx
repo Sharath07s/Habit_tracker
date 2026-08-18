@@ -4,6 +4,7 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox"
 
 import { cn } from "@/lib/utils"
 import { CheckIcon } from "lucide-react"
+import { motion } from "framer-motion"
 
 function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
   return (
@@ -18,9 +19,15 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
+        asChild
       >
-        <CheckIcon
-        />
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: [1.2, 1], opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <CheckIcon />
+        </motion.div>
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )

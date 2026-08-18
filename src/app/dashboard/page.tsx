@@ -57,6 +57,7 @@ export default async function DashboardPage() {
         initialGoals={goals || []}
         initialTasks={todayTasks || []}
         pastTasks={pastTasks || []}
+        studyGoalMinutes={user.user_metadata?.daily_study_goal || 0}
       />
     </div>
   )
