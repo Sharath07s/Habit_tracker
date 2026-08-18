@@ -19,7 +19,6 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
         className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
-        asChild
       >
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}

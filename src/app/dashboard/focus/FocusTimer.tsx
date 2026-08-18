@@ -74,7 +74,8 @@ export function FocusTimer() {
     setTimeLeft(mode)
   }
 
-  const handleModeChange = (val: string) => {
+  const handleModeChange = (val: string | null) => {
+    if (!val) return
     if (val === 'custom') {
       setIsCustomMode(true)
       setCurrentSelection('custom')
