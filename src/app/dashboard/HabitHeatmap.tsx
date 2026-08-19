@@ -37,8 +37,8 @@ export function HabitHeatmap({ habits, habitLogs }: HabitHeatmapProps) {
       
       // Calculate total habits active on this day
       const activeHabits = habits.filter(h => {
-        const createdAt = new Date(h.created_at)
-        return createdAt <= day
+        const createdDateStr = format(new Date(h.created_at), 'yyyy-MM-dd')
+        return createdDateStr <= dateStr
       }).length
 
       const completed = logsByDate.get(dateStr) || 0
@@ -48,16 +48,18 @@ export function HabitHeatmap({ habits, habitLogs }: HabitHeatmapProps) {
     return data
   }, [days, habits, habitLogs])
 
-  const getColor = (completed: number, total: number, date: Date) => {
-    if (isAfter(date, today)) return 'bg-white/5' // Future days
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+
+  const getColor = (completed: number, total: number, dateStr: string) => {
+    if (dateStr > todayStr) return 'bg-white/5' // Future days
     if (total === 0) return 'bg-white/5'
     if (completed === 0) return 'bg-white/5'
 
     const ratio = completed / total
-    if (ratio >= 1) return 'bg-green-500'
-    if (ratio >= 0.75) return 'bg-green-600'
-    if (ratio >= 0.5) return 'bg-green-700'
-    if (ratio > 0) return 'bg-green-800'
+    if (ratio >= 1) return 'bg-green-800' // Darkest
+    if (ratio >= 0.75) return 'bg-green-700'
+    if (ratio >= 0.5) return 'bg-green-600'
+    if (ratio > 0) return 'bg-green-500' // Lightest
     
     return 'bg-white/5'
   }
@@ -176,7 +178,7 @@ export function HabitHeatmap({ habits, habitLogs }: HabitHeatmapProps) {
                       }
                       const dateStr = format(day, 'yyyy-MM-dd')
                       const { completed, total } = heatmapData.get(dateStr) || { completed: 0, total: 0 }
-                      const colorClass = getColor(completed, total, day)
+                      const colorClass = getColor(completed, total, dateStr)
 
                       return (
                         <motion.div
